@@ -31,7 +31,17 @@ func (expr Expr) Build(builder Builder) {
 		idx              int
 	)
 
-	for _, v := range []byte(expr.SQL) {
+	sqlBts := []byte(expr.SQL)
+	for i, v := range sqlBts {
+		if v == '?' {
+			if len(sqlBts) > i+1 && sqlBts[i+1] == '?' {
+				continue
+			}
+			if i >= 1 && sqlBts[i-1] == '?' {
+				builder.WriteByte(v)
+				continue
+			}
+		}
 		if v == '?' && len(expr.Vars) > idx {
 			if afterParenthesis || expr.WithoutParentheses {
 				if _, ok := expr.Vars[idx].(driver.Valuer); ok {
@@ -123,7 +133,17 @@ func (expr NamedExpr) Build(builder Builder) {
 
 	name := make([]byte, 0, 10)
 
-	for _, v := range []byte(expr.SQL) {
+	sqlBts := []byte(expr.SQL)
+	for i, v := range sqlBts {
+		if v == '?' {
+			if len(sqlBts) > i+1 && sqlBts[i+1] == '?' {
+				continue
+			}
+			if i >= 1 && sqlBts[i-1] == '?' {
+				builder.WriteByte(v)
+				continue
+			}
+		}
 		if v == '@' && !inName {
 			inName = true
 			name = name[:0]
